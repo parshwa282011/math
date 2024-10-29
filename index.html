@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Scanner</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    #output { margin-top: 10px; font-size: 1.2em; color: green; }
+    video, canvas { display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Math Question Scanner</h1>
+  <video id="video" width="320" height="240" autoplay></video>
+  <button id="capture">Capture & Solve</button>
+  <div id="output">Result will appear here</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const output = document.getElementById('output');
+    const captureButton = document.getElementById('capture');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    // Access camera
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+    });
+
+    // Capture frame and solve
+    captureButton.addEventListener('click', async () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
+      const imageData = canvas.toDataURL('image/png');
+
+      // Perform OCR with Tesseract
+      const result = await Tesseract.recognize(imageData, 'eng');
+      const mathQuestion = result.data.text.trim();
+
+      // Solve math question if recognized
+      try {
+        const solution = math.evaluate(mathQuestion);
+        output.innerText = `Question: ${mathQuestion}\nSolution: ${solution}`;
+      } catch (error) {
+        output.innerText = "Unable to solve. Please try again.";
+      }
+    });
+  </script>
+
+</body>
+</html>
